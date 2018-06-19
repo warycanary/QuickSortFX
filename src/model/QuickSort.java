@@ -2,6 +2,10 @@ package model;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * QuickSorter object for sorting int arrays
+ * @author warycanary
+ */
 public class QuickSort {
     
     /**
@@ -13,9 +17,9 @@ public class QuickSort {
     public void sort(int[] array, int left, int right) {
         /* If sorted array*/
         if (left < right) {
-            int s = partition(array, left, right);
-            sort(array, left, s - 1);
-            sort(array, s + 1, right);
+            int sorted = partition(array, left, right);
+            sort(array, left, sorted - 1);
+            sort(array, sorted + 1, right);
         }
     }
     
