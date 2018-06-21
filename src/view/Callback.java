@@ -1,12 +1,21 @@
 package view;
 
+import javafx.application.Platform;
 import model.SortEvent;
-
-import java.util.List;
 
 public class Callback {
     
-    public void displaySortEvents(List<SortEvent> events) {
-        // Notify Application of algorithm completion
+    QuickSortFX quickSortFX;
+    
+    public Callback(QuickSortFX quickSortFX) {
+        this.quickSortFX = quickSortFX;
+    }
+    
+    public void sendListSize(int size) {
+        Platform.runLater(() -> quickSortFX.getBoxPane().initialiseBoxes(size));
+    }
+    
+    public void displaySortEvent(SortEvent event) {
+        Platform.runLater(() -> quickSortFX.displayEvent(event));
     }
 }

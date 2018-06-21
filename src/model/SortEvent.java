@@ -2,14 +2,14 @@ package model;
 
 public class SortEvent {
 
-    private EventType eventType;
+    private SortEventType eventType;
     private int[] array;
     private boolean[] sorted;
     private int i;
     private int j;
     private int pivot;
     
-    public SortEvent(EventType eventType, int[] array, boolean[] sorted, int i, int j, int pivot) {
+    public SortEvent(SortEventType eventType, int[] array, boolean[] sorted, int i, int j, int pivot) {
         this.eventType = eventType;
         this.array = array;
         this.sorted = sorted;
@@ -39,7 +39,7 @@ public class SortEvent {
         return pivot;
     }
     
-    public EventType getType() {
+    public SortEventType getType() {
         return this.eventType;
     }
 }

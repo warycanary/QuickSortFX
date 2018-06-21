@@ -1,7 +1,6 @@
 package model;
 
 import view.Callback;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,9 +17,9 @@ public class QuickSort {
     private List<Callback> callbacks = new ArrayList<>();
     
     /**
-     * Collection for storing all sorting steps
+     * Sleep time
      */
-    private List<SortEvent> events = new ArrayList<>();
+    private int time = 200;
     
     /**
      * Quick sort algorithm. Sorts an array from smallest to largest
@@ -31,10 +30,10 @@ public class QuickSort {
     public void start(int[] array, int left, int right) {
         /* Stores each index in the array that has been sorted */
         boolean[] sorted = new boolean[array.length];
-        sort(array, left, right, sorted);
         for (Callback callback : callbacks) {
-            callback.displaySortEvents(events);
+            callback.sendListSize(array.length);
         }
+        sort(array, left, right, sorted);
     }
     
     /**
@@ -44,7 +43,7 @@ public class QuickSort {
      * @param right maximum index in array to sort (usually array.length - 1)
      */
     private void sort(int[] array, int left, int right, boolean[] sorted) {
-        events.add(new SortEventBuilder().newPartition(array, sorted).build());
+        sendEvent(new SortEventBuilder().newPartition(array, sorted).build());
         /* If sorted array*/
         if (left < right) {
             int split = partition(array, left, right);
@@ -69,16 +68,16 @@ public class QuickSort {
         int i = left + 1, j = right, random = random(left, right);
         
         /* Add pivot information to events */
-        events.add(new SortEventBuilder().selectPivot(random).build());
+        sendEvent(new SortEventBuilder().selectPivot(random).build());
         
         /* Swap the random value to the pivot position */
         swap(array, random, left);
     
         /* Add new pivot information to events */
-        events.add(new SortEventBuilder().selectPivot(left).build());
-    
+        sendEvent(new SortEventBuilder().selectPivot(left).build());
+        
         /* Adds i and j starting position to events */
-        events.add(new SortEventBuilder().scan(i, j).build());
+        sendEvent(new SortEventBuilder().scan(i, j).build());
         
         /* Loop until j crosses i */
         while (i <= j) {
@@ -96,14 +95,14 @@ public class QuickSort {
             if (i < j) {
                 swap(array, i, j);
                 /* Adds i and j starting position to events */
-                events.add(new SortEventBuilder().swap(i, j).build());
+                sendEvent(new SortEventBuilder().swap(i, j).build());
             }
         }
         /* Swap the pivot with j */
         swap(array, left, j);
     
-        /* Adds i and j starting position to events */
-        events.add(new SortEventBuilder().pivotSwap(i, j, left).build());
+        /* Adds i and j ending position to events */
+        sendEvent(new SortEventBuilder().pivotSwap(i, j, left).build());
         
         return j;
     }
@@ -132,18 +131,29 @@ public class QuickSort {
     }
     
     /**
-     * Get a list of all steps of the QuickSort algorithm
-     * @return List of all QuickSort algorithm events
-     */
-    public List<SortEvent> getEvents() {
-        return this.events;
-    }
-    
-    /**
      * Adds a callback to the callback collection
      * @param callback notifies that sorting is complete
      */
     public void addCallback(Callback callback) {
         this.callbacks.add(callback);
+    }
+    
+    private void setTime(int time) {
+        this.time = time;
+    }
+    
+    /**
+     * Sleep for specified time and send event
+     */
+    private void sendEvent(SortEvent event) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+        for (Callback callback : callbacks) {
+            callback.displaySortEvent(event);
+        }
     }
 }
