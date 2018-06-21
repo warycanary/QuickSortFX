@@ -1,5 +1,9 @@
 package model;
 
+import view.Callback;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -9,17 +13,47 @@ import java.util.concurrent.ThreadLocalRandom;
 public class QuickSort {
     
     /**
+     * Callbacks to be notified when sorting is done
+     */
+    private List<Callback> callbacks = new ArrayList<>();
+    
+    /**
+     * Collection for storing all sorting steps
+     */
+    private List<SortEvent> events = new ArrayList<>();
+    
+    /**
      * Quick sort algorithm. Sorts an array from smallest to largest
      * @param array int array to sort
      * @param left minimum index in array to sort (usually 0)
      * @param right maximum index in array to sort (usually array.length - 1)
      */
-    public void sort(int[] array, int left, int right) {
+    public void start(int[] array, int left, int right) {
+        /* Stores each index in the array that has been sorted */
+        boolean[] sorted = new boolean[array.length];
+        sort(array, left, right, sorted);
+        for (Callback callback : callbacks) {
+            callback.displaySortEvents(events);
+        }
+    }
+    
+    /**
+     * This method is called recursively on each partition
+     * @param array int array to sort
+     * @param left minimum index in array to sort (usually 0)
+     * @param right maximum index in array to sort (usually array.length - 1)
+     */
+    private void sort(int[] array, int left, int right, boolean[] sorted) {
+        events.add(new SortEventBuilder().newPartition(array, sorted).build());
         /* If sorted array*/
         if (left < right) {
-            int sorted = partition(array, left, right);
-            sort(array, left, sorted - 1);
-            sort(array, sorted + 1, right);
+            int split = partition(array, left, right);
+            sorted[split] = true;
+            sort(array, left, split - 1, sorted);
+            sort(array, split + 1, right, sorted);
+        /* If single index partition, mark sorted */
+        } else if (left == right){
+            sorted[left] = true;
         }
     }
     
@@ -32,11 +66,22 @@ public class QuickSort {
      * @return the index of the sorted element
      */
     private int partition(int[] array, int left, int right) {
-        int i = left + 1, j = right;
+        int i = left + 1, j = right, random = random(left, right);
+        
+        /* Add pivot information to events */
+        events.add(new SortEventBuilder().selectPivot(random).build());
+        
         /* Swap the random value to the pivot position */
-        swap(array, random(left, right), left);
+        swap(array, random, left);
+    
+        /* Add new pivot information to events */
+        events.add(new SortEventBuilder().selectPivot(left).build());
+    
+        /* Adds i and j starting position to events */
+        events.add(new SortEventBuilder().scan(i, j).build());
+        
         /* Loop until j crosses i */
-        while (i < j) {
+        while (i <= j) {
             /* Increment i if not out of bounds, i is not greater than j
              * and value of i is less than the value of the pivot */
             while (i <= right && i <= j && array[i] <= array[left]) {
@@ -50,10 +95,16 @@ public class QuickSort {
             /* Swap i and j unless crossed */
             if (i < j) {
                 swap(array, i, j);
+                /* Adds i and j starting position to events */
+                events.add(new SortEventBuilder().swap(i, j).build());
             }
         }
         /* Swap the pivot with j */
         swap(array, left, j);
+    
+        /* Adds i and j starting position to events */
+        events.add(new SortEventBuilder().pivotSwap(i, j, left).build());
+        
         return j;
     }
     
@@ -78,5 +129,21 @@ public class QuickSort {
      */
     private int random(int min, int max) {
         return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+    
+    /**
+     * Get a list of all steps of the QuickSort algorithm
+     * @return List of all QuickSort algorithm events
+     */
+    public List<SortEvent> getEvents() {
+        return this.events;
+    }
+    
+    /**
+     * Adds a callback to the callback collection
+     * @param callback notifies that sorting is complete
+     */
+    public void addCallback(Callback callback) {
+        this.callbacks.add(callback);
     }
 }
